@@ -16,8 +16,6 @@ jobs:
   review-airflow-dags:
     name: Review Airflow DAGs
     runs-on: ubuntu-latest
-    if: |
-      contains(join(github.event.pull_request.changed_files.*.filename, ','), 'dags/')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -52,8 +50,6 @@ jobs:
   review-terraform:
     name: Review Terraform
     runs-on: ubuntu-latest
-    if: |
-      contains(join(github.event.pull_request.changed_files.*.filename, ','), 'terraform/')
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
