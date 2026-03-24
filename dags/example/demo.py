@@ -1,7 +1,3 @@
-"""
-# Missing proper module docstring - this is intentionally incomplete for testing
-"""
-
 from datetime import datetime
 import requests
 from airflow import DAG
