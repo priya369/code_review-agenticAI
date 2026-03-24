@@ -1,1 +1,125 @@
+# ─────────────────────────────────────────────────────────────────────────────
+# Claude Code Review — Rule Configuration
+# Edit this file to customise what Claude flags. Then reference it in the
+# review scripts if you want to externalise the rule text.
+# ─────────────────────────────────────────────────────────────────────────────
 
+dag_rules:
+  critical:
+    - id: no_top_level_code
+      description: "No DB queries / API calls at module import time"
+      enabled: true
+
+    - id: catchup_explicit
+      description: "catchup must be set explicitly on every DAG"
+      enabled: true
+
+    - id: no_hardcoded_credentials
+      description: "No passwords or tokens in plain text"
+      enabled: true
+
+    - id: static_start_date
+      description: "start_date must be a fixed datetime, not datetime.now()"
+      enabled: true
+
+    - id: explicit_schedule
+      description: "schedule_interval / schedule must always be set"
+      enabled: true
+
+  warning:
+    - id: retries_set
+      description: "retries >= 1 and retry_delay in default_args"
+      enabled: true
+
+    - id: task_timeout
+      description: "execution_timeout on long-running tasks"
+      enabled: true
+
+    - id: no_bare_except
+      description: "No bare except: clauses"
+      enabled: true
+
+    - id: on_failure_callback
+      description: "Production DAGs must define on_failure_callback"
+      enabled: true
+
+    - id: no_deprecated_operators
+      description: "Use EmptyOperator instead of DummyOperator, etc."
+      enabled: true
+
+    - id: module_docstring
+      description: "Every DAG file must have a module-level docstring"
+      enabled: true
+
+  info:
+    - id: tags_recommended
+      description: "DAGs should include at least one tag"
+      enabled: true
+
+    - id: max_active_runs
+      description: "Set max_active_runs explicitly"
+      enabled: true
+
+    - id: idempotent_tasks
+      description: "Tasks that write data should handle re-runs"
+      enabled: true
+
+terraform_rules:
+  critical:
+    - id: no_hardcoded_secrets
+      description: "No passwords/keys in plain text"
+      enabled: true
+
+    - id: no_public_s3
+      description: "No public-read / public-read-write S3 ACLs"
+      enabled: true
+
+    - id: no_open_sg_sensitive_ports
+      description: "No 0.0.0.0/0 on ports 22, 3389, 5432, 3306, 6379"
+      enabled: true
+
+    - id: encryption_required
+      description: "S3, RDS, EBS must have encryption enabled"
+      enabled: true
+
+    - id: deletion_protection
+      description: "RDS / Aurora must have deletion_protection = true in prod"
+      enabled: true
+
+  warning:
+    - id: required_tags
+      description: "Name, Environment, Owner, ManagedBy tags on every resource"
+      enabled: true
+
+    - id: variable_descriptions
+      description: "All variables need description + type"
+      enabled: true
+
+    - id: remote_backend
+      description: "Remote backend required (S3 + DynamoDB for AWS)"
+      enabled: true
+
+    - id: provider_version_pins
+      description: "All providers must pin versions"
+      enabled: true
+
+    - id: lifecycle_prevent_destroy
+      description: "Databases, KMS keys need lifecycle prevent_destroy"
+      enabled: true
+
+    - id: for_each_over_count
+      description: "Prefer for_each over count for keyed resources"
+      enabled: true
+
+  info:
+    - id: sensitive_variables
+      description: "Secret variables should be marked sensitive = true"
+      enabled: true
+
+    - id: naming_convention
+      description: "snake_case names with environment prefix"
+      enabled: true
+
+    - id: moved_blocks
+      description: "Use moved {} instead of destroy+recreate on rename"
+      enabled: true
