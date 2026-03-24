@@ -1,0 +1,87 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - "dags/**/*.py"
+      - "terraform/**/*.tf"
+      - "terraform/**/*.tfvars"
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  review-airflow-dags:
+    name: Review Airflow DAGs
+    runs-on: ubuntu-latest
+    if: |
+      contains(join(github.event.pull_request.changed_files.*.filename, ','), 'dags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install anthropic PyGithub
+
+      - name: Get changed DAG files
+        id: changed-dags
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            dags/**/*.py
+
+      - name: Run Claude DAG Review
+        if: steps.changed-dags.outputs.any_changed == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_NAME: ${{ github.repository }}
+          CHANGED_FILES: ${{ steps.changed-dags.outputs.all_changed_files }}
+        run: python .github/scripts/review_dags.py
+
+  review-terraform:
+    name: Review Terraform
+    runs-on: ubuntu-latest
+    if: |
+      contains(join(github.event.pull_request.changed_files.*.filename, ','), 'terraform/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install anthropic PyGithub
+
+      - name: Get changed Terraform files
+        id: changed-tf
+        uses: tj-actions/changed-files@v44
+        with:
+          files: |
+            terraform/**/*.tf
+            terraform/**/*.tfvars
+
+      - name: Run Claude Terraform Review
+        if: steps.changed-tf.outputs.any_changed == 'true'
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO_NAME: ${{ github.repository }}
+          CHANGED_FILES: ${{ steps.changed-tf.outputs.all_changed_files }}
+        run: python .github/scripts/review_terraform.py
